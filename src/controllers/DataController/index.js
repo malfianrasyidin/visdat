@@ -1,12 +1,15 @@
 import { Sequelize, Op } from 'sequelize'
 import { Data } from '../../models'
 import Controller from '../Controller'
-import Roles from '../../data/roles.json'
 
 class DataController extends Controller {
   static index = (req, res) => res.status(200).json(this.getOkPayload({ status: 'Success' }))
 
-  static roleList = (req, res) => res.status(200).json(this.getOkPayload({ Roles }))
+  static roleList = (req, res) => {
+    const roles = Data.getRoles()
+
+    return res.status(200).json(this.getOkPayload({ roles }))
+  }
 
   static countryList = (req,res) => {
     return Data.findAll({
@@ -43,8 +46,9 @@ class DataController extends Controller {
 
     return new Promise((resolve, reject) => {
       const result = []
+      const roles = Data.getRoles()
 
-      Roles.forEach(async role => {
+      roles.forEach(async role => {
         const { name } = role
 
         Data.findAndCountAll({
@@ -61,7 +65,7 @@ class DataController extends Controller {
               count
             })
 
-            if (result.length === Roles.length) {
+            if (result.length === roles.length) {
               resolve(result)
             }
           }
