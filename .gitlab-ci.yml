@@ -1,0 +1,49 @@
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  stage: test
+  image: node:12-alpine
+  allow_failure: false
+  script:
+    - npm install --progress=false
+    - npm run lint
+  cache:
+    paths:
+      - node_modules
+
+build:
+  image: node:12-alpine
+  stage: build
+  allow_failure: false
+  environment: production
+  script:
+    - npm install --progress=false
+    - npm run build
+    - npm pack
+    - mkdir package
+    - mv *.tgz package/$CI_PROJECT_NAME-$CI_BUILD_REF.tgz
+  cache:
+    paths:
+      - node_modules
+  artifacts:
+    name: '$CI_PROJECT_NAME-$CI_BUILD_REF'
+    paths:
+      - package
+    expire_in: 1 week
+
+deploy:
+  stage: deploy
+  image: centos:7
+  environment: integration
+  script:
+    - mkdir -p ~/.ssh
+    - echo "$CHARLIE_KEY" >> ~/.ssh/id_dsa
+    - chmod 600 ~/.ssh/id_dsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - yum update && yum upgrade -y
+    - yum install -y rsync openssh openssh-clients
+    - scp package/$CI_PROJECT_NAME-$CI_BUILD_REF.tgz $CHARLIE_USER@$CHARLIE_SERVER:~
+    - ssh -t $CHARLIE_USER@$CHARLIE_SERVER "$DEPLOY integration $CI_PROJECT_NAME-$CI_BUILD_REF"

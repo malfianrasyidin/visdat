@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  node:
+    container_name: visdat_node
+    image: node:12-alpine
+    env_file:
+      - .env
+    volumes:
+      - .:/usr/app
+    ports:
+      - ${NODE_PORT:-3000}:3000
+    networks:
+      - default
+    restart: unless-stopped
+    working_dir: /usr/app
+    command: sh -c "npm install && npm start"
+
+  postgres:
+    container_name: visdat_postgres
+    image: postgres:alpine
+    environment: 
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PGDATA: /data/postgres
+    volumes:
+      - /data/postgres:/data/postgres
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    networks:
+      - default
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: visdat_pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@lokakarya.co.id}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    volumes:
+      - /root/.pgadmin:/root/.pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - default
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge
