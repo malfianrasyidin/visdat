@@ -77,7 +77,7 @@ class DataController extends Controller {
   }
 
   static company = (req, res) => {
-    const { country = '', limit = 10 } = req.query
+    const { country = '', limit = 10, role='' } = req.query
 
     return Data.findAll({
       attributes: [
@@ -85,7 +85,8 @@ class DataController extends Controller {
         [Sequelize.fn('COUNT', Sequelize.col('company')), 'count']
       ],
       where: {
-        country: { [Op.iLike]: `%${country}%` }
+        country: { [Op.iLike]: `%${country}%` },
+        role: { [Op.iLike]: `%${role}%` }
       },
       group: ['company'],
       order: [[Sequelize.literal('count'), 'DESC']],
