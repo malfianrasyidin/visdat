@@ -101,6 +101,34 @@ class DataController extends Controller {
       e => { throw new Error(e) }
     )
   }
+
+  static country = (req, res) => {
+    const { country = '' } = req.query
+
+    return Data.count({
+      col: 'company',
+      distinct: true,
+      where: {
+        country: { [Op.iLike]: `%${country}%` }
+      }
+    })
+    .then(
+      companyCount => Data.count({
+        col: 'id',
+        distinct: true,
+        where: {
+          country: { [Op.iLike]: `%${country}%` }
+        }
+      })
+      .then(
+        employeeCount => res.status(200).json(this.getOkPayload({companyCount, employeeCount}))
+      ).catch(
+        e => { throw new Error(e) }
+      )
+    ).catch(
+      e => { throw new Error(e) }
+    )
+  }
 }
 
 export default DataController
