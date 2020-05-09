@@ -103,13 +103,13 @@ class DataController extends Controller {
   }
 
   static country = (req, res) => {
-    const { country = '' } = req.query
+    const { name = '' } = req.query
 
     return Data.count({
       col: 'company',
       distinct: true,
       where: {
-        country: { [Op.iLike]: `%${country}%` }
+        country: { [Op.iLike]: `%${name}%` }
       }
     })
     .then(
@@ -117,7 +117,7 @@ class DataController extends Controller {
         col: 'id',
         distinct: true,
         where: {
-          country: { [Op.iLike]: `%${country}%` }
+          country: { [Op.iLike]: `%${name}%` }
         }
       })
       .then(
